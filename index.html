@@ -85,4 +85,18 @@
             document.getElementById('stock-input').value = "";
         }
 
-        function saveNote
+        function saveNote(id) {
+            localStorage.setItem('note_' + id, document.getElementById('note-' + id).value);
+            const status = document.getElementById(`save-status-${id}`);
+            status.style.opacity = "1";
+            setTimeout(() => { status.style.opacity = "0"; }, 800);
+        }
+
+        function removeCard(id) {
+            if(confirm(`確定要移除 ${id} 的分析卡片嗎？（筆記內容仍會保留在系統中）`)) {
+                document.getElementById(`card-${id}`).remove();
+            }
+        }
+    </script>
+</body>
+</html>
