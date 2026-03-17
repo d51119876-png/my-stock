@@ -3,35 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的股市筆記本 - 正式版</title>
+    <title>我的股市筆記本 - 凱基通用版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: #eee; font-family: "Microsoft JhengHei", sans-serif; }
-        .up { color: #ff3b3b; }
-        .down { color: #00ff00; }
-        .note-box { background: #111; border: 1px solid #333; min-height: 200px; resize: vertical; }
-        .stock-item { border: 1px solid #222; margin-bottom: 24px; border-radius: 12px; overflow: hidden; background: #0a0a0a; }
-        iframe { border-radius: 8px; background-color: #131722; }
+        body { background-color: #000; color: #eee; }
+        .note-box { background: #111; border: 1px solid #333; min-height: 200px; }
+        .stock-item { border: 1px solid #222; margin-bottom: 24px; border-radius: 12px; background: #0a0a0a; }
+        /* 讓圖表容器有固定高度 */
+        .chart-wrapper { height: 500px; width: 100%; background: #131722; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center border-b border-zinc-800 pb-6 mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-yellow-500">我的自選股</h1>
-                <p class="text-xs text-gray-500 mt-1">點擊股票名稱或按鈕展開 K 線圖</p>
-            </div>
-            <div class="text-right text-xs text-zinc-600">
-                Data by TradingView
-            </div>
+<body class="p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="border-b border-zinc-800 pb-4 mb-8">
+            <h1 class="text-2xl font-bold text-yellow-500">自選股筆記本</h1>
         </header>
 
-        <div id="stock-list" class="space-y-6">
-            </div>
+        <div id="stock-list" class="space-y-6"></div>
     </div>
 
     <script>
-        // 股票清單：如果還有看到 "Only on TradingView"，請嘗試切換 TWSE 或 OTC
         const myStocks = [
             { id: '2330', name: '台積電', symbol: '2330' },
             { id: '2317', name: '鴻海', symbol: '2317' },
@@ -43,29 +34,22 @@
 
         myStocks.forEach(stock => {
             const html = `
-                <div class="stock-item p-4 md:p-6 shadow-2xl">
+                <div class="stock-item p-4">
                     <div class="flex justify-between items-center mb-4">
-                        <div class="cursor-pointer" onclick="toggleChart('${stock.id}')">
-                            <h2 class="text-2xl font-black text-white hover:text-yellow-500 transition-colors">${stock.id} ${stock.name}</h2>
-                            <div class="text-xs text-zinc-500 mt-1">點擊展開 / 收合圖表</div>
-                        </div>
-                        <button onclick="toggleChart('${stock.id}')" class="bg-yellow-600 text-black font-bold px-5 py-2 rounded-full text-sm hover:bg-yellow-400">K 線</button>
+                        <h2 class="text-xl font-bold">${stock.id} ${stock.name}</h2>
+                        <button onclick="toggleChart('${stock.id}')" class="bg-zinc-800 px-4 py-2 rounded text-yellow-500 text-sm">切換 K 線</button>
                     </div>
 
-                    <div id="chart-${stock.id}" class="hidden w-full h-[500px] mb-6 border border-zinc-800 rounded-lg overflow-hidden">
-                        <div class="tradingview-widget-container" style="height:100%;width:100%">
-                          <iframe scrolling="no" allowtransparency="true" frameborder="0" 
-                            src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_762ae&symbol=${stock.symbol}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FTaipei&withdateranges=1&showpopupbutton=1&popupwidth=1000&popupheight=650" 
-                            style="width: 100%; height: 100%;"></iframe>
-                        </div>
+                    <div id="chart-${stock.id}" class="hidden chart-wrapper mb-4">
+                        <iframe 
+                            src="https://s.tradingview.com/widgetembed/?symbol=TWSE:${stock.id}&interval=D&theme=dark&style=1&timezone=Asia/Taipei&locale=zh_TW" 
+                            width="100%" height="100%" frameborder="0" allowfullscreen>
+                        </iframe>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-zinc-400 mb-2 underline decoration-yellow-800">交易心得 / 備註：</label>
-                        <textarea id="note-${stock.id}" oninput="saveNote('${stock.id}')" 
-                            class="note-box w-full p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600 transition-all" 
-                            placeholder="在這裡寫下你的分析、進出場理由..."></textarea>
-                    </div>
+                    <textarea id="note-${stock.id}" oninput="saveNote('${stock.id}')" 
+                        class="note-box w-full p-4 rounded text-sm focus:outline-none focus:border-yellow-600" 
+                        placeholder="在此輸入筆記..."></textarea>
                 </div>
             `;
             listContainer.innerHTML += html;
@@ -77,8 +61,7 @@
         }
 
         function saveNote(id) {
-            const val = document.getElementById('note-' + id).value;
-            localStorage.setItem('note_' + id, val);
+            localStorage.setItem('note_' + id, document.getElementById('note-' + id).value);
         }
 
         window.onload = () => {
