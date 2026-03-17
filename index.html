@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STOCK HUB - Analysis</title>
+    <title>STOCK HUB - WantGoo Pure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --ph-orange: #ff9900; --ph-black: #000000; --ph-gray: #1b1b1b; }
-        
-        body { background-color: var(--ph-black); color: #ffffff; font-family: "Arial Black", Gadget, sans-serif; margin: 0; }
+        body { background-color: var(--ph-black); color: #ffffff; font-family: "Arial Black", sans-serif; margin: 0; }
         
         .ph-logo { color: #ffffff; font-weight: 900; font-size: 2.2rem; letter-spacing: -2px; }
         .ph-logo span { background-color: var(--ph-orange); color: #000; padding: 0px 8px; border-radius: 6px; margin-left: 4px; }
@@ -16,18 +15,25 @@
         .ph-input { background: #000; border: 2px solid #333; color: #fff; border-radius: 4px; }
         .ph-input:focus { border-color: var(--ph-orange); outline: none; }
         .ph-btn { background-color: var(--ph-orange); color: #000; font-weight: 900; border-radius: 4px; }
-        .ph-btn:hover { background-color: #ffad33; }
 
         .stock-card { background: var(--ph-gray); border: 1px solid #333; border-radius: 12px; overflow: hidden; margin-bottom: 30px; }
         .card-header { background: #222; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ph-orange); }
         
-        /* 縮小後的筆記區 */
+        /* 玩股網 K 線專用容器：透過負 margin 隱藏網頁頂部導覽 */
+        .chart-container { position: relative; width: 100%; height: 550px; overflow: hidden; background: #000; }
+        .chart-container iframe { 
+            width: 100%; 
+            height: 750px; /* 設高一點，把底部廣告推出去 */
+            border: none;
+            margin-top: -65px; /* 關鍵：把玩股網頂部的選單「推」出框框外 */
+        }
+
         .note-area { 
             background-color: #000; 
             color: var(--ph-orange); 
             border: 1px solid #333; 
             width: 100%; 
-            min-height: 120px; /* 從 300px 縮減至 120px */
+            min-height: 100px; /* 緊湊筆記區 */
             border-radius: 6px; 
             padding: 12px; 
             font-family: "Consolas", monospace;
@@ -35,13 +41,6 @@
             line-height: 1.4;
         }
         .note-area:focus { border-color: var(--ph-orange); outline: none; }
-
-        .chart-box { height: 500px; width: 100%; background: #000; }
-        
-        /* 滾動條美化 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--ph-orange); }
 
         .save-label { color: var(--ph-orange); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; }
     </style>
@@ -57,8 +56,8 @@
         </header>
 
         <div id="display-area">
-            <div id="welcome" class="text-center py-20 border-2 border-zinc-900 rounded-2xl">
-                <p class="text-zinc-700 font-black italic">PREMIUM MEMBER ACCESS</p>
+            <div id="welcome" class="text-center py-20 border-2 border-zinc-900 rounded-2xl text-zinc-800">
+                <p class="font-black italic">CHOOSE YOUR SYMBOL TO START ANALYZING</p>
             </div>
         </div>
     </div>
@@ -78,18 +77,20 @@
             card.className = 'stock-card';
             card.innerHTML = `
                 <div class="card-header">
-                    <span class="text-lg font-black">${id} <span style="color: var(--ph-orange);">ANALYSIS</span></span>
+                    <span class="text-lg font-black">${id} <span style="color: var(--ph-orange);">K-LINE</span></span>
                     <button onclick="document.getElementById('card-${id}').remove()" class="text-zinc-600 hover:text-white font-bold text-xs">CLOSE X</button>
                 </div>
-                <div class="chart-box">
-                    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TWSE:${id}&interval=D&theme=dark&style=1&timezone=Asia/Taipei&locale=zh_TW" width="100%" height="100%" frameborder="0"></iframe>
+                
+                <div class="chart-container">
+                    <iframe src="https://www.wantgoo.com/stock/${id}/technical-chart" scrolling="no"></iframe>
                 </div>
+
                 <div class="p-4">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="save-label">Private Notes</label>
+                        <label class="save-label">Quick Note</label>
                         <span id="toast-${id}" class="save-label opacity-0" style="color: #000; background: var(--ph-orange); padding: 1px 4px; border-radius: 2px;">SAVED</span>
                     </div>
-                    <textarea id="note-${id}" class="note-area" oninput="saveData('${id}')" placeholder="Enter strategy..."></textarea>
+                    <textarea id="note-${id}" class="note-area" oninput="saveData('${id}')" placeholder="Notes..."></textarea>
                 </div>
             `;
             const area = document.getElementById('display-area');
