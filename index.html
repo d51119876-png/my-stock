@@ -3,61 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的私人三竹股市</title>
+    <title>我的股市多功能筆記本</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: #eee; }
+        body { background-color: #000; color: #eee; font-family: "Microsoft JhengHei", sans-serif; }
         .up { color: #ff3b3b; }
         .down { color: #00ff00; }
-        .note-box { background: #111; border: 1px solid #333; min-height: 200px; resize: vertical; }
-        /* 讓手機看也舒服的設定 */
-        @media (max-width: 640px) {
-            .stock-grid { grid-template-columns: 1fr; }
-        }
+        .note-box { background: #111; border: 1px solid #333; min-height: 150px; resize: vertical; }
+        .stock-item { border: 1px solid #222; margin-bottom: 20px; border-radius: 8px; overflow: hidden; }
     </style>
 </head>
 <body class="p-4">
     <div class="max-w-4xl mx-auto">
         <header class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-6">
             <h1 class="text-2xl font-bold text-yellow-500">自選股筆記本</h1>
-            <div class="text-xs text-gray-500">儲存位置：此電腦瀏覽器</div>
+            <div class="text-xs text-gray-500">自動存檔至本機</div>
         </header>
 
-        <div id="app">
-            <div class="mb-8 bg-zinc-900 rounded-lg p-4 border border-zinc-800">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">2330 台積電</h2>
-                        <p class="text-2xl font-mono up font-bold">1045.0 <span class="text-sm">+2.1%</span></p>
-                    </div>
-                    <button onclick="toggleChart('2330')" class="bg-zinc-800 px-4 py-2 rounded text-sm hover:bg-zinc-700">顯示 K 線</button>
-                </div>
-
-                <div id="chart-2330" class="hidden w-full h-96 mb-4">
-                    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TWSE%3A2330&interval=D&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-gray-500 mb-2">大篇幅備註區：</label>
-                    <textarea id="note-2330" oninput="save('2330')" class="note-box w-full p-4 rounded-md focus:outline-none focus:border-yellow-600" placeholder="在此輸入你的長篇分析..."></textarea>
-                </div>
+        <div id="stock-list">
             </div>
+
+        <div class="text-center mt-10 text-gray-600 text-sm">
+            點擊「顯示 K 線」查看即時圖表
         </div>
     </div>
 
     <script>
+        // 在這裡增加你想看的股票 (代號, 名稱, 市場標籤)
+        const myStocks = [
+            { id: '2330', name: '台積電', symbol: 'TWSE:2330' },
+            { id: '2317', name: '鴻海', symbol: 'TWSE:2317' },
+            { id: '2454', name: '聯發科', symbol: 'TWSE:2454' },
+            { id: '2603', name: '長榮', symbol: 'TWSE:2603' }
+        ];
+
+        const listContainer = document.getElementById('stock-list');
+
+        // 生成所有股票的 HTML
+        myStocks.forEach(stock => {
+            const html = `
+                <div class="stock-item bg-zinc-900 p-4">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">${stock.id} ${stock.name}</h2>
+                        </div>
+                        <button onclick="toggleChart('${stock.id}')" class="bg-zinc-800 px-4 py-2 rounded text-sm hover:bg-zinc-700 text-yellow-500">顯示 K 線</button>
+                    </div>
+
+                    <div id="chart-${stock.id}" class="hidden w-full h-[450px] mb-4">
+                        <iframe src="https://s.tradingview.com/widgetembed/?symbol=${stock.symbol}&interval=D&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-2 font-bold">交易備註 / 策略：</label>
+                        <textarea id="note-${stock.id}" oninput="saveNote('${stock.id}')" class="note-box w-full p-4 rounded-md focus:outline-none focus:border-yellow-600" placeholder="寫下對 ${stock.name} 的看法..."></textarea>
+                    </div>
+                </div>
+            `;
+            listContainer.innerHTML += html;
+        });
+
+        // 控制圖表顯示/隱藏
         function toggleChart(id) {
             const el = document.getElementById('chart-' + id);
             el.classList.toggle('hidden');
         }
-        function save(id) {
+
+        // 儲存筆記
+        function saveNote(id) {
             const val = document.getElementById('note-' + id).value;
             localStorage.setItem('note_' + id, val);
         }
-        // 載入舊筆記
+
+        // 載入已儲存的筆記
         window.onload = () => {
-            const saved = localStorage.getItem('note_2330');
-            if(saved) document.getElementById('note-2330').value = saved;
+            myStocks.forEach(stock => {
+                const saved = localStorage.getItem('note_' + stock.id);
+                if(saved) {
+                    document.getElementById('note-' + stock.id).value = saved;
+                }
+            });
         }
     </script>
 </body>
