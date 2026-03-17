@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的私人三竹股市</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000; color: #eee; }
+        .up { color: #ff3b3b; }
+        .down { color: #00ff00; }
+        .note-box { background: #111; border: 1px solid #333; min-height: 200px; resize: vertical; }
+        /* 讓手機看也舒服的設定 */
+        @media (max-width: 640px) {
+            .stock-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center border-b border-zinc-800 pb-4 mb-6">
+            <h1 class="text-2xl font-bold text-yellow-500">自選股筆記本</h1>
+            <div class="text-xs text-gray-500">儲存位置：此電腦瀏覽器</div>
+        </header>
+
+        <div id="app">
+            <div class="mb-8 bg-zinc-900 rounded-lg p-4 border border-zinc-800">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">2330 台積電</h2>
+                        <p class="text-2xl font-mono up font-bold">1045.0 <span class="text-sm">+2.1%</span></p>
+                    </div>
+                    <button onclick="toggleChart('2330')" class="bg-zinc-800 px-4 py-2 rounded text-sm hover:bg-zinc-700">顯示 K 線</button>
+                </div>
+
+                <div id="chart-2330" class="hidden w-full h-96 mb-4">
+                    <iframe src="https://s.tradingview.com/widgetembed/?symbol=TWSE%3A2330&interval=D&theme=dark" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-500 mb-2">大篇幅備註區：</label>
+                    <textarea id="note-2330" oninput="save('2330')" class="note-box w-full p-4 rounded-md focus:outline-none focus:border-yellow-600" placeholder="在此輸入你的長篇分析..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleChart(id) {
+            const el = document.getElementById('chart-' + id);
+            el.classList.toggle('hidden');
+        }
+        function save(id) {
+            const val = document.getElementById('note-' + id).value;
+            localStorage.setItem('note_' + id, val);
+        }
+        // 載入舊筆記
+        window.onload = () => {
+            const saved = localStorage.getItem('note_2330');
+            if(saved) document.getElementById('note-2330').value = saved;
+        }
+    </script>
+</body>
+</html>
