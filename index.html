@@ -3,127 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業股市研究室 - PH Style</title>
+    <title>PH Stock Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 深黑色背景 */
-        body { background-color: #000000; color: #FFFFFF; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+        /* Pornhub 核心配色：純黑背景 + 亮橘強調 */
+        :root { --ph-orange: #ff9900; --ph-black: #000000; --ph-gray: #1b1b1b; }
+        body { background-color: var(--ph-black); color: #ffffff; font-family: Arial, sans-serif; margin: 0; }
         
-        /* Pornhub 橙黃色文字 (#FFA500) */
-        .ph-accent { color: #FFA500; }
+        .header-logo { color: var(--ph-orange); font-weight: 900; letter-spacing: -1px; }
+        .header-logo span { background-color: var(--ph-orange); color: black; padding: 2px 6px; border-radius: 4px; margin-left: 2px; }
+
+        /* 搜索框與按鈕 */
+        .search-input { background: #121212; border: 1px solid #333; color: white; border-radius: 4px; }
+        .search-input:focus { border-color: var(--ph-orange); outline: none; }
+        .ph-btn { background-color: var(--ph-orange); color: black; font-weight: bold; border-radius: 4px; transition: 0.2s; }
+        .ph-btn:hover { background-color: #ffad33; }
+
+        /* 卡片設計 */
+        .stock-card { background-color: var(--ph-gray); border-radius: 8px; border: 1px solid #333; overflow: hidden; margin-bottom: 25px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         
-        /* 筆記區域 (#262626背景) */
-        .note-box { background: #262626; border: 1px solid #333333; min-height: 250px; resize: vertical; color: #f2f2f2; }
-        
-        /* 卡片 (#1A1A1A背景) */
-        .stock-card { border: 1px solid #333333; border-radius: 8px; background: #1A1A1A; overflow: hidden; margin-bottom: 1.5rem; transition: box-shadow 0.3s; }
-        .stock-card:hover { box-shadow: 0 4px 15px rgba(255, 165, 0, 0.2); }
-        
-        /* 輸入框 & 按鈕焦點 */
-        input:focus { outline: none; border-color: #FFA500; box-shadow: 0 0 8px rgba(255, 165, 0, 0.4); }
-        button:focus { outline: none; box-shadow: 0 0 8px rgba(255, 165, 0, 0.4); }
-        
-        /* 歡迎區域樣式 */
-        #welcome-msg { border: 2px dashed #333333; }
-        
-        /* 純淨K線容器 (維持白色背景以顯示清楚圖表) */
-        .chart-container { position: relative; width: 100%; height: 500px; overflow: hidden; background: #fff; }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* 筆記區 */
+        .note-area { background-color: #121212; color: #eee; border: 1px solid #333; border-radius: 4px; padding: 15px; width: 100%; min-height: 200px; resize: vertical; }
+        .note-area:focus { border-color: var(--ph-orange); outline: none; }
+
+        /* 狀態文字 */
+        .save-hint { color: var(--ph-orange); font-size: 10px; font-weight: bold; opacity: 0; transition: 0.5s; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto">
-        <header class="sticky top-0 z-50 bg-[#000000]/95 backdrop-blur-sm pb-6 mb-8 border-b border-[#333333]">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <h1 class="text-3xl font-black ph-accent tracking-tighter hover:opacity-90">STOCK<span class="text-white">NOTE</span></h1>
-                <div class="flex w-full md:w-auto gap-2">
-                    <input type="text" id="stock-input" placeholder="輸入代號 (如: 2330)" 
-                        class="bg-[#1A1A1A] border border-[#333333] rounded px-4 py-2 w-full md:w-48 text-white text-sm">
-                    <button onclick="searchStock()" class="bg-[#FFA500] hover:bg-[#FFB732] text-black font-extrabold px-6 py-2 rounded transition-colors text-sm whitespace-nowrap">
-                        搜尋並分析
-                    </button>
-                </div>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 pb-6 border-b border-zinc-800 gap-4">
+            <div class="header-logo text-3xl">STOCK<span>HUB</span></div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <input type="text" id="stock-id" placeholder="輸入代號 (如: 2330)" class="search-input px-4 py-2 w-full md:w-48 text-sm">
+                <button onclick="addStock()" class="ph-btn px-6 py-2 text-sm whitespace-nowrap">搜尋分析</button>
             </div>
         </header>
 
-        <div id="display-area">
-            <div id="welcome-msg" class="text-center py-20 text-[#cccccc] rounded-md">
-                <p class="text-xl font-medium">請在上方輸入股票代號開始研究</p>
-                <p class="text-sm mt-1 ph-accent">您的每則分析都會自動儲存</p>
+        <div id="main-container">
+            <div id="empty-msg" class="text-center py-20 text-zinc-600">
+                <p class="text-lg">目前沒有分析項目，請搜尋代號開始。</p>
             </div>
         </div>
     </div>
 
     <script>
-        // 監聽 Enter 鍵
-        document.getElementById('stock-input').addEventListener('keypress', (e) => e.key === 'Enter' && searchStock());
+        // 監聽鍵盤 Enter
+        document.getElementById('stock-id').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addStock();
+        });
 
-        function searchStock() {
-            const inputEl = document.getElementById('stock-input');
-            const id = inputEl.value.trim();
+        function addStock() {
+            const id = document.getElementById('stock-id').value.trim();
             if (!id) return;
 
-            // 移除歡迎訊息
-            const welcomeMsg = document.getElementById('welcome-msg');
-            if (welcomeMsg) welcomeMsg.remove();
+            // 移除提示文字
+            const emptyMsg = document.getElementById('empty-msg');
+            if (emptyMsg) emptyMsg.remove();
 
-            // === [修復關鍵] ===
-            // 如果該卡片已經存在，我們選擇跳過，不再警示
+            // 如果已經有了，就不要重複加
             if (document.getElementById(`card-${id}`)) {
-                inputEl.value = ""; // 清空輸入框
-                return; // 直接返回，不執行下方代碼
+                alert('此股票已在清單中');
+                return;
             }
-            // =================
 
-            // 建立新的股票卡片
             const card = document.createElement('div');
             card.id = `card-${id}`;
-            card.className = 'stock-card shadow-lg';
-            
+            card.className = 'stock-card shadow-2xl';
             card.innerHTML = `
-                <div class="flex justify-between items-center p-3.5 bg-[#1A1A1A] border-b border-[#333333]">
-                    <span class="font-bold text-xl ph-accent tracking-tight">${id} 分析報告</span>
-                    <button onclick="removeCard('${id}')" class="text-gray-600 hover:text-red-500 text-xs">移除 X</button>
+                <div class="card-header">
+                    <span class="font-bold text-lg" style="color: #ff9900;">${id} 數據分析</span>
+                    <button onclick="document.getElementById('card-${id}').remove()" class="text-zinc-500 hover:text-white">關閉 X</button>
+                </div>
+                
+                <div style="height: 550px; width: 100%; background: #131722;">
+                    <iframe 
+                        src="https://s.tradingview.com/widgetembed/?symbol=TWSE:${id}&interval=D&theme=dark&style=1&timezone=Asia/Taipei&locale=zh_TW" 
+                        width="100%" height="100%" frameborder="0" allowfullscreen>
+                    </iframe>
                 </div>
 
-                <div class="chart-container">
-                    <iframe src="https://tw.stock.yahoo.com/q/ta?s=${id}" scrolling="auto"></iframe>
-                </div>
-
-                <div class="p-6">
+                <div class="p-5">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-[#aaaaaa] uppercase tracking-widest">📝 交易筆記 / 策略分析</label>
-                        <span id="save-status-${id}" class="text-[10px] ph-accent font-bold opacity-0 transition-opacity">已自動儲存</span>
+                        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">個人策略備註</span>
+                        <span id="hint-${id}" class="save-hint">已存檔</span>
                     </div>
-                    <textarea id="note-${id}" oninput="saveNote('${id}')" 
-                        class="note-box w-full p-4 rounded focus:outline-none text-base leading-relaxed" 
-                        placeholder="在此輸入您的專業分析或計畫..."></textarea>
+                    <textarea id="note-${id}" class="note-area" oninput="saveData('${id}')" placeholder="寫下你的操作想法..."></textarea>
                 </div>
             `;
 
-            // 將新搜尋的放在最上面
-            const displayArea = document.getElementById('display-area');
-            displayArea.insertBefore(card, displayArea.firstChild);
-            
-            // 載入舊筆記
+            // 放在最上面
+            const container = document.getElementById('main-container');
+            container.insertBefore(card, container.firstChild);
+
+            // 讀取存檔
             const saved = localStorage.getItem('note_' + id);
-            if(saved) document.getElementById('note-' + id).value = saved;
+            if (saved) document.getElementById('note-' + id).value = saved;
 
-            // 清空輸入框
-            inputEl.value = "";
+            // 清空輸入
+            document.getElementById('stock-id').value = '';
         }
 
-        function saveNote(id) {
-            localStorage.setItem('note_' + id, document.getElementById('note-' + id).value);
+        function saveData(id) {
+            const val = document.getElementById('note-' + id).value;
+            localStorage.setItem('note_' + id, val);
             
-            // 顯示橙黃色存檔提示
-            const status = document.getElementById(`save-status-${id}`);
-            status.style.opacity = "1";
-            setTimeout(() => { status.style.opacity = "0"; }, 800);
-        }
-
-        function removeCard(id) {
-            document.getElementById(`card-${id}`).remove();
+            // 閃爍存檔提示
+            const hint = document.getElementById('hint-' + id);
+            hint.style.opacity = 1;
+            setTimeout(() => { hint.style.opacity = 0; }, 800);
         }
     </script>
 </body>
