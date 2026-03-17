@@ -3,107 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股市動態筆記本</title>
+    <title>我的私人股市研究室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: #eee; font-family: "Microsoft JhengHei", sans-serif; }
-        .note-box { background: #111; border: 1px solid #333; min-height: 300px; resize: vertical; }
-        .stock-card { border: 1px solid #333; border-radius: 12px; background: #0a0a0a; overflow: hidden; animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        iframe { width: 100%; height: 600px; border: none; }
-        input:focus { outline: none; border-color: #ca8a04; box-shadow: 0 0 10px rgba(202, 138, 4, 0.3); }
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+        .note-box { background: #161b22; border: 1px solid #30363d; min-height: 250px; resize: vertical; color: #e6edf3; }
+        .stock-card { border: 1px solid #30363d; border-radius: 12px; background: #0d1117; overflow: hidden; margin-bottom: 2rem; }
+        /* 讓 Yahoo 圖表更純淨的容器 */
+        .chart-container { position: relative; width: 100%; height: 500px; overflow: hidden; background: #fff; }
+        iframe { width: 100%; height: 100%; border: none; }
+        input:focus { outline: none; border-color: #58a6ff; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto">
-        <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md pb-6 mb-8 border-b border-zinc-800">
+        <header class="sticky top-0 z-50 bg-[#0d1117]/95 backdrop-blur-sm pb-6 mb-8 border-b border-[#30363d]">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <h1 class="text-2xl font-black text-yellow-500 tracking-tighter">STOCK SEARCH</h1>
+                <h1 class="text-xl font-bold text-[#e6edf3]">股市分析筆記</h1>
                 <div class="flex w-full md:w-auto gap-2">
-                    <input type="text" id="stock-input" placeholder="輸入股票代號 (如: 2330)" 
-                        class="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 w-full md:w-64 text-white">
-                    <button onclick="searchStock()" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold px-6 py-2 rounded-lg transition-all">
-                        搜尋
+                    <input type="text" id="stock-input" placeholder="輸入代號 (如: 2330)" 
+                        class="bg-[#0d1117] border border-[#30363d] rounded-md px-4 py-2 w-full md:w-48 text-white focus:ring-1 focus:ring-blue-500">
+                    <button onclick="searchStock()" class="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold px-6 py-2 rounded-md transition-all text-sm">
+                        新增分析
                     </button>
                 </div>
             </div>
         </header>
 
         <div id="display-area">
-            <div id="welcome-msg" class="text-center py-20 text-zinc-500">
-                <p class="text-xl">請在上方輸入股票代號開始分析</p>
-                <p class="text-sm mt-2">系統會自動保存您的每筆紀錄</p>
+            <div id="welcome-msg" class="text-center py-20 text-gray-500 border-2 border-dashed border-[#30363d] rounded-xl">
+                <p>請輸入股票代號開始研究</p>
             </div>
         </div>
     </div>
 
     <script>
-        // 監聽 Enter 鍵
-        document.getElementById('stock-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') searchStock();
-        });
+        document.getElementById('stock-input').addEventListener('keypress', (e) => e.key === 'Enter' && searchStock());
 
         function searchStock() {
             const id = document.getElementById('stock-input').value.trim();
-            if (!id) return alert("請輸入代號");
+            if (!id) return;
 
-            const displayArea = document.getElementById('display-area');
             const welcomeMsg = document.getElementById('welcome-msg');
             if (welcomeMsg) welcomeMsg.remove();
 
-            // 建立新的股票卡片 (如果已存在則先移除)
-            const existingCard = document.getElementById(`card-${id}`);
-            if (existingCard) existingCard.remove();
+            if (document.getElementById(`card-${id}`)) {
+                alert("該股票已在清單中");
+                return;
+            }
 
             const card = document.createElement('div');
             card.id = `card-${id}`;
-            card.className = 'stock-card mb-10 shadow-2xl';
+            card.className = 'stock-card shadow-lg';
             
             card.innerHTML = `
-                <div class="flex justify-between items-center p-4 bg-zinc-900 border-b border-zinc-800">
-                    <h2 class="text-2xl font-bold text-white">${id} <span class="text-yellow-500 ml-2">個股分析</span></h2>
-                    <button onclick="removeCard('${id}')" class="text-zinc-500 hover:text-red-500 text-sm">關閉 X</button>
+                <div class="flex justify-between items-center p-3 bg-[#161b22] border-b border-[#30363d]">
+                    <span class="font-bold text-blue-400">${id} 研究報告</span>
+                    <button onclick="removeCard('${id}')" class="text-gray-500 hover:text-red-400 text-xs">移除本則分析</button>
                 </div>
 
                 <div class="chart-container">
-                    <iframe src="https://histock.tw/stock/tchart.aspx?no=${id}" scrolling="no"></iframe>
+                    <iframe src="https://tw.stock.yahoo.com/q/ta?s=${id}" scrolling="auto"></iframe>
                 </div>
 
-                <div class="p-6">
+                <div class="p-5">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest">交易備註 / 策略筆記</label>
-                        <span id="save-status-${id}" class="text-[10px] text-green-600 font-bold opacity-0 transition-opacity">已自動存檔</span>
+                        <label class="text-xs font-semibold text-gray-400">📊 核心筆記 / 進出場計畫</label>
+                        <span id="save-status-${id}" class="text-[10px] text-green-500 font-bold opacity-0 transition-opacity">已自動儲存</span>
                     </div>
                     <textarea id="note-${id}" oninput="saveNote('${id}')" 
-                        class="note-box w-full p-5 rounded-xl focus:outline-none text-lg leading-relaxed" 
-                        placeholder="在此輸入對 ${id} 的看法..."></textarea>
+                        class="note-box w-full p-4 rounded-md focus:outline-none text-base" 
+                        placeholder="在此輸入您的分析..."></textarea>
                 </div>
             `;
 
-            // 將新搜尋的放在最上面
+            const displayArea = document.getElementById('display-area');
             displayArea.insertBefore(card, displayArea.firstChild);
             
-            // 載入舊筆記
             const saved = localStorage.getItem('note_' + id);
             if(saved) document.getElementById('note-' + id).value = saved;
-
-            // 清空輸入框
             document.getElementById('stock-input').value = "";
         }
 
-        function saveNote(id) {
-            const val = document.getElementById('note-' + id).value;
-            localStorage.setItem('note_' + id, val);
-            
-            // 顯示閃爍的存檔提示
-            const status = document.getElementById(`save-status-${id}`);
-            status.style.opacity = "1";
-            setTimeout(() => { status.style.opacity = "0"; }, 1000);
-        }
-
-        function removeCard(id) {
-            document.getElementById(`card-${id}`).remove();
-        }
-    </script>
-</body>
-</html>
+        function saveNote
